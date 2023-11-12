@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\MarkedCallLog;
 use App\Models\ProjectWordstat;
 use App\Services\WordsForms;
 use Illuminate\Bus\Queueable;
@@ -15,6 +16,7 @@ class MarkedCall implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $event;
+    private $owner_id;
 
     const LIMIT_INDEX_WORD_IN_PHRASE = 4;
     const DEFAULT_SCHEME_ID = 25;
@@ -29,15 +31,30 @@ class MarkedCall implements ShouldQueue
     private $_map = null;
     public $text_channel = [];
 
-    public function __construct($event, $project_id)
+    public function __construct($event, $project_id, $owner_id)
     {
         $this->event = $event;
         $this->project_id = $project_id;
+        $this->owner_id = $owner_id;
     }
 
     public function handle(): void
     {
-        $this->markCall();
+        try {
+            $tags = $this->markCall();
+            $this->saveThemes($tags);
+            MarkedCallLog::create([
+                'call_id' => $this->event->id,
+                'tags' => serialize($tags),
+                'status' => 1,
+            ]);
+        } catch (\Exception $exception) {
+            MarkedCallLog::create([
+                'call_id' => $this->event->id,
+                'tags' => $exception->getMessage(),
+                'status' => 0,
+            ]);
+        }
     }
 
     public function markCall()
@@ -142,7 +159,7 @@ class MarkedCall implements ShouldQueue
     public function getProject()
     {
         if (is_null($this->_project)) {
-            $this->_project = ProjectWordstat::findOrFail($this->project_id);
+            $this->_project = ProjectWordstat::getProject($this->project_id);
         }
 
         return $this->_project;
@@ -653,9 +670,11 @@ class MarkedCall implements ShouldQueue
      * @param $project_id
      * @return bool
      */
-    public function saveThemes($tagsArray, $ownerId, $eventId)
+    public function saveThemes($tagsArray)
     {
         try {
+            $ownerId = $this->owner_id;
+            $eventId = $this->event->id;
             if ($ownerId > 0) {
                 $owner = sprintf('%08d', $ownerId);
             } else {
