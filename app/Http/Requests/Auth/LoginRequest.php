@@ -60,7 +60,7 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
-                'email' => __('messages.failed'),
+                'email' => __('Не верное имя пользователя или пароль'),
             ]);
         }
 

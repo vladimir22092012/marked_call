@@ -16,7 +16,7 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><Link class="dropdown-item" :href="route('marked_call.form')">Разметка звонков</Link></li>
-                            <li><Link class="dropdown-item" :href="route('users')">Пользователи</Link></li>
+                            <li v-if="user.name === 'admin'"><Link class="dropdown-item" :href="route('users')">Пользователи</Link></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><Link class="dropdown-item" :href="route('logout')">Выйти</Link></li>
                         </ul>
@@ -47,6 +47,7 @@ export default {
         }
     },
     mounted() {
+        this.user = this.$page?.props?.auth.user;
         router.on('finish', (event) => {
             this.user = this.$page?.props?.auth.user;
         })

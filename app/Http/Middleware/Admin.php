@@ -10,7 +10,7 @@ class Admin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user('token') && $request->user()->name != 'admin') {
+        if ($request->user() && $request->user()->name != 'admin') {
             return redirect('/');
         }
 

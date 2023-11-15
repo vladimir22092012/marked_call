@@ -31,11 +31,14 @@ class MarkedCall implements ShouldQueue
     private $_map = null;
     public $text_channel = [];
 
-    public function __construct($event, $project_id, $owner_id)
+    public $user;
+
+    public function __construct($event, $project_id, $owner_id, $user)
     {
         $this->event = $event;
         $this->project_id = $project_id;
         $this->owner_id = $owner_id;
+        $this->user = $user;
     }
 
     public function handle(): void
@@ -47,12 +50,14 @@ class MarkedCall implements ShouldQueue
                 'call_id' => $this->event->id,
                 'tags' => serialize($tags),
                 'status' => 1,
+                'user_id' => $this->user->id,
             ]);
         } catch (\Exception $exception) {
             MarkedCallLog::create([
                 'call_id' => $this->event->id,
                 'tags' => $exception->getMessage(),
                 'status' => 0,
+                'user_id' => $this->user->id,
             ]);
         }
     }

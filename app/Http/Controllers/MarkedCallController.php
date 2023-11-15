@@ -56,7 +56,7 @@ class MarkedCallController extends Controller
             }
 
             foreach ($items as $item) {
-                MarkedCall::dispatch($item['event'], $item['gkprojectid'], $data['owner'])->onQueue('marked_call');
+                MarkedCall::dispatch($item['event'], $item['gkprojectid'], $data['owner'], $request->user())->onQueue('marked_call');
             }
 
             return $this->success(['status' => 'ok']);

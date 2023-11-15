@@ -26,5 +26,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
-    Route::get('/createUser', [\App\Http\Controllers\AdminController::class, 'createUser'])->name('createUser');
+    Route::get('/create', [\App\Http\Controllers\AdminController::class, 'form'])->name('users.form');
+    Route::post('/save', [\App\Http\Controllers\AdminController::class, 'save'])->name('users.save');
+    Route::get('/delete/{user}', [\App\Http\Controllers\AdminController::class, 'delete'])->name('users.delete');
 });
