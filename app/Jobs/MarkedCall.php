@@ -399,6 +399,11 @@ class MarkedCall implements ShouldQueue
         return $this->links_words;
     }
 
+    private function setLinksWords($array)
+    {
+        $this->links_words = $array;
+    }
+
     private function analysisTagsText()
     {
         $index = $this->getLinksWords();
