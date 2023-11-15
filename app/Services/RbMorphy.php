@@ -1,31 +1,21 @@
 <?php
 namespace App\Services;
-$file = '/phpmorphy/src/common.php';
 
-require_once($file);
+use cijic\phpMorphy\Morphy;
 
 /**
  * Оболочка для библиотеки phpMorphy
- *
- * @author Ilya Perfilyev <ilya_perfi@mail.ru>
  */
-class RBMorphy {
+class RbMorphy {
 
     public $options = array(
-        // storage type, follow types supported
-        // PHPMORPHY_STORAGE_FILE - use file operations(fread, fseek) for dictionary access, this is very slow...
-        // PHPMORPHY_STORAGE_SHM - load dictionary in shared memory(using shmop php extension), this is preferred mode
-        // PHPMORPHY_STORAGE_MEM - load dict to memory each time when phpMorphy intialized, this useful when shmop ext. not activated. Speed same as for PHPMORPHY_STORAGE_SHM type
-        'storage' => PHPMORPHY_STORAGE_FILE,
-        // Extend graminfo for getAllFormsWithGramInfo method call
+        //'storage' => PHPMORPHY_STORAGE_FILE,
         'with_gramtab' => false,
-        // Enable prediction by suffix
         'predict_by_suffix' => true,
-        // Enable prediction by prefix
         'predict_by_db' => true
     );
     public $dictdir;
-    public $language = 'rus';
+    public $language = 'ru';
     protected $_phpMorphy;
 
     protected function getDictDir() {
@@ -34,10 +24,7 @@ class RBMorphy {
 
     public function getMorphy() {
         if (!isset($this->_phpMorphy)) {
-            // Create descriptor for dictionary located in $dir directory with russian language
-            $dict_bundle = new phpMorphy_FilesBundle($this->getDictDir(), $this->language);
-            // Create phpMorphy instance
-            $this->_phpMorphy = new phpMorphy($dict_bundle, $this->options);
+            $this->_phpMorphy = new Morphy($this->language);
         }
         return $this->_phpMorphy;
     }
@@ -62,8 +49,8 @@ class RBMorphy {
         $upperText = $this->toUpperText($text);
 
         // 2. распиливаем фразу и текст на слова
-        $keywords = Util::getWords($upperQuery);
-        $textWords = Util::getWords($upperText);
+        $keywords = WordsForms::getWords($upperQuery);
+        $textWords = WordsForms::getWords($upperText);
         //echo "textwords: ".implode(',',$textWords)."\n";
 
         // 3. Получаем словоформы слов фразы
