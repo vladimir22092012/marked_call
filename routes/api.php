@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware('integrationPassword')->group(function () {
+    Route::post('/marked_call/start', [\App\Http\Controllers\MarkedCallController::class, 'startMarked'])->name('api.marked_call.start');
+});
