@@ -13,6 +13,7 @@
         "laravel/horizon": "*",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "predis/predis": "^2.2",
         "tightenco/ziggy": "^1.8"
     },
     "require-dev": {

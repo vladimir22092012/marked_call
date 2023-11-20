@@ -1,6 +1,8 @@
 <?php
 namespace App\Services;
 
+use App\Services\RbMorphy;
+
 class WordsForms
 {
     protected $lang = 'ru';
@@ -85,7 +87,7 @@ class WordsForms
 
     public function getPhpMorphyClass() {
         if(is_null($this->phpMorphyClass)) {
-            $morphyClass = new RBMorphy();
+            $morphyClass = new RbMorphy();
             $this->phpMorphyClass = $morphyClass;
         }
         return $this->phpMorphyClass;

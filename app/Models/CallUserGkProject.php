@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MarkedCallLog extends Model
+class CallUserGkProject extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $table = 'call_user_gk_project';
 
-    protected $table = 'marked_calls_log';
+    protected $connection = 'lk_sales_mysql';
 }

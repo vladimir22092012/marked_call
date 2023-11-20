@@ -5,16 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Events extends Model
+class TagLink extends Model
 {
     use HasFactory;
+
+    public $timestamps = false;
+    protected $guarded = [];
 
     public int $owner;
 
     public function set_table($owner): void
     {
         $this->owner = $owner;
-        $this->table = "events_call_".sprintf('%08d', $this->owner);
+        $this->table = "tag_link_".sprintf('%08d', $this->owner);
     }
 
     protected $connection = 'ai_mysql';

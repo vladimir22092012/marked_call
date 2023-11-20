@@ -4,12 +4,16 @@ namespace App\Jobs;
 
 use App\Models\MarkedCallLog;
 use App\Models\ProjectWordstat;
+use App\Models\TagColor;
+use App\Models\TagLink;
+use App\Models\Tags;
 use App\Services\WordsForms;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use PHPUnit\Logging\Exception;
 
 class MarkedCall implements ShouldQueue
 {
@@ -47,14 +51,14 @@ class MarkedCall implements ShouldQueue
             $tags = $this->markCall();
             $this->saveThemes($tags);
             MarkedCallLog::create([
-                'call_id' => $this->event->id,
+                'call_id' => $this->event['id'],
                 'tags' => serialize($tags),
                 'status' => 1,
                 'user_id' => $this->user->id,
             ]);
         } catch (\Exception $exception) {
             MarkedCallLog::create([
-                'call_id' => $this->event->id,
+                'call_id' => $this->event['id'],
                 'tags' => $exception->getMessage(),
                 'status' => 0,
                 'user_id' => $this->user->id,
@@ -64,8 +68,8 @@ class MarkedCall implements ShouldQueue
 
     public function markCall()
     {
-        if (!empty($this->event->title)) {
-            $this->setTextCall($this->event->title);
+        if (!empty($this->event['title'])) {
+            $this->setTextCall($this->event['title']);
         } else {
             return false;
         }
@@ -163,11 +167,7 @@ class MarkedCall implements ShouldQueue
 
     public function getProject()
     {
-        if (is_null($this->_project)) {
-            $this->_project = ProjectWordstat::getProject($this->project_id);
-        }
-
-        return $this->_project;
+        return ProjectWordstat::findOrFail($this->project_id);
     }
 
 
@@ -224,6 +224,7 @@ class MarkedCall implements ShouldQueue
             }
             $this->lemmas[$original] = $lemma;
         }
+
     }
 
     private function getLemmas()
@@ -487,21 +488,6 @@ class MarkedCall implements ShouldQueue
                 return $a['start'] - $b['start'];
             });
 
-//            foreach ($allCoordinates as $pos => $item) {
-//                if (count($allCoordinates) > 1) {
-//                    foreach ($allCoordinates as $posFind => $itemFind) {
-//                        if ((int)$posFind === (int)$pos) break;
-//
-//                        if ($item['start'] >= $itemFind['start'] && $item['end'] <= $itemFind['end']) {
-//                            unset($allCoordinates[$pos]);
-//                            break;
-//                        } else if (($item['start'] >= $itemFind['start'] && $item['start'] <= $itemFind['end']) || ($item['end'] >= $itemFind['start'] && $item['end'] <= $itemFind['end'])) {
-//                            unset($allCoordinates[$posFind]);
-//                        }
-//                    }
-//                }
-//            }
-
             $allCoordinates = array_map(function ($item) {
                 return json_encode($item, JSON_UNESCAPED_UNICODE);
             }, $allCoordinates);
@@ -605,11 +591,6 @@ class MarkedCall implements ShouldQueue
             $value = [];
             foreach (array_values($tag['message_number'])  as $val){
                 if ( $val["needchannel"] != "all" && $val["needchannel"] != $this->text_channel[$val["id"]]) {
-                    /*$value[] = [
-                        'color'          => '#ccc',
-                        'message_number' => [],
-                        'marker'         => $marker
-                    ];*/
                 }else {
                     $value[] = $val;
                 }
@@ -658,18 +639,36 @@ class MarkedCall implements ShouldQueue
      * @param $tagsArray
      * @param $theme_id
      */
-    public function saveReplic($themes, $theme_id, $owner, $eventId)
+    public function saveReplic($themes, $theme_id, $ownerId, $eventId)
     {
+        $tagLinkModel = new TagLink();
+        $tagLinkModel->set_table($ownerId);
         if (isset($themes['message_number'])) {
             if (!empty($themes['message_number'])) {
                 foreach ($themes['message_number'] as $replic) {
                     $replicNumber = $replic['id'];
-                    $query = "INSERT INTO tag_link_" . $owner . " SET tag_id=" . (int)$theme_id . ", event_id=" . (int)$eventId . ", source='call', module='', approve = 1, replic_number =" . (int)$replicNumber;
-                    Yii::app()->aidbpr->createCommand($query)->execute();
+                    $tagLinkModel->create([
+                        'tag_id' => $theme_id,
+                        'event_id' => $eventId,
+                        'source' => 'call',
+                        'module' => '',
+                        'approve' => 1,
+                        'script_id' => 0,
+                        'owner_id' => 0,
+                        'replic_number' => $replicNumber
+                    ]);
                 }
             } else {
-                $query = "INSERT INTO tag_link_" . $owner . " SET tag_id=" . (int)$theme_id . ", event_id=" . (int)$eventId . ", source='call', module='', approve = 1, replic_number =" . -1;
-                Yii::app()->aidbpr->createCommand($query)->execute();
+                $tagLinkModel->create([
+                    'tag_id' => $theme_id,
+                    'event_id' => $eventId,
+                    'source' => 'call',
+                    'module' => '',
+                    'approve' => 1,
+                    'script_id' => 0,
+                    'owner_id' => 0,
+                    'replic_number' => -1
+                ]);
             }
         }
     }
@@ -684,7 +683,7 @@ class MarkedCall implements ShouldQueue
     {
         try {
             $ownerId = $this->owner_id;
-            $eventId = $this->event->id;
+            $eventId = $this->event['id'];
             if ($ownerId > 0) {
                 $owner = sprintf('%08d', $ownerId);
             } else {
@@ -693,26 +692,29 @@ class MarkedCall implements ShouldQueue
             $theme_id = null;
 
             if (!empty($tagsArray)) {
-                Yii::app()->aidbpr->createCommand()
-                    ->delete("tag_link_" . $owner, 'event_id = :event_id', [':event_id' => (int)$eventId]);
-                Yii::app()->aidbpr->createCommand()
-                    ->delete("tag_color_" . $owner, 'event_id = :event_id', [':event_id' => (int)$eventId]);
+                $tagLinkModel = new TagLink();
+                $tagLinkModel->set_table($ownerId);
+                $tagLinkModel->newQuery()->where('event_id', '=', $eventId)->delete();
+                $tagColorModel = new TagColor();
+                $tagColorModel->set_table($ownerId);
+                $tagColorModel->newQuery()->where('event_id', '=', $eventId)->delete();
+
                 foreach ($tagsArray as $themes) {
                     if (isset($themes["marker"]) && isset($themes['color'])) {
                         $tagTitleNormalized = strtolower(trim($themes["marker"]));
-                        $queryi = "SELECT * FROM tags_" . $owner . " WHERE name='" . $themes["marker"] . "'";
-                        $getid = Yii::app()->aidbpr->createCommand($queryi)->queryRow();
-
-                        if (!isset($getid['tag_id'])) {
-                            try {
-                                $query = "INSERT INTO tags_" . $owner . " SET name='" . $themes["marker"] . "', normalize='$tagTitleNormalized', schema_id=" . self::DEFAULT_SCHEME_ID;
-                                Yii::app()->aidbpr->createCommand($query)->execute();
-                                $theme_id = Yii::app()->aidbpr->getLastInsertID();
-                            } catch (Exception $exception) {
-                                continue;
-                            }
+                        $tagsModel = new Tags();
+                        $tagsModel->set_table($ownerId);
+                        $getid = $tagsModel->newQuery()
+                            ->where('normalize', '=', $tagTitleNormalized)
+                            ->first();
+                        if (!$getid) {
+                            $theme_id = $tagsModel->create([
+                                'name' => $themes["marker"],
+                                'normalize' => $tagTitleNormalized,
+                                'schema_id' => self::DEFAULT_SCHEME_ID,
+                            ])->id;
                         } else {
-                            $theme_id = $getid['tag_id'];
+                            $theme_id = $getid->tag_id;
                         }
 
                         $color = $themes['color'];
@@ -720,10 +722,13 @@ class MarkedCall implements ShouldQueue
                             $color = '#ccc';
                         }
 
-                        $query = "INSERT INTO tag_color_" . $owner . " SET tag_id='" . $theme_id . "', color='" . $color . "', event_id=" . (int)$eventId;
-                        Yii::app()->aidbpr->createCommand($query)->execute();
+                        $tagColorModel->create([
+                            'tag_id' => $theme_id,
+                            'color' => $color,
+                            'event_id' => $eventId
+                        ]);
 
-                        $this->saveReplic($themes, $theme_id, $owner, $eventId);
+                        $this->saveReplic($themes, $theme_id, $ownerId, $eventId);
                     }
                 }
             }

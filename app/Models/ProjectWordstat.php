@@ -10,6 +10,9 @@ class ProjectWordstat extends Model
 {
     use HasFactory;
 
+    //protected $connection = 'ms_mysql';
+    protected $table = 'projects_wordstat';
+
     /**
      * @return HasMany
      */

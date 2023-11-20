@@ -1,6 +1,8 @@
 <?php
 namespace App\Services;
 
+use App\Models\Events;
+use App\Models\Owner;
 use Illuminate\Support\Facades\Http;
 
 class Owners {
@@ -11,32 +13,30 @@ class Owners {
      */
     public static function getOwners(): array
     {
-        $request = Http::withHeader('GoodkeyApiPass', env('MCC_SERVICES_PASS'))
-            ->post('https://lk.sales-management-center.com/calls/owners');
-        $response = json_decode($request->body(), true);
-        if (isset($response['owners'])) {
-            return $response['owners'];
-        }
-        return [];
+        $data = [];
+        Owner::query()->where('active', '=', 1)
+            ->orderBy('name')
+            ->each(function(Owner $owner) use (&$data) {
+                $data[$owner->owner_id] = $owner->name;
+            });
+        return $data;
     }
 
     /**
      * Заберает список оунеров с машины ai.r-broker.ru
-     * @return array
      */
-    public static function getCalls($owner, $call_id, $date = null): array
+    public static function getCalls($owner, $call_id = null, $date = []): \Illuminate\Database\Eloquent\Collection|array
     {
-        $request = Http::withHeader('GoodkeyApiPass', env('MCC_SERVICES_PASS'))
-            ->post('https://lk.sales-management-center.com/calls/events', [
-                'owner' => $owner,
-                'call_id' => $call_id,
-                'date' => $date,
-            ]);
-        $response = json_decode($request->body(), true);
-        if (isset($response['result'])) {
-            return $response['result'];
+        $model = new Events();
+        $model->set_table($owner);
+        $query = $model->newQuery();
+        if (!empty($call_id)) {
+            $query->where('id', '=', $call_id);
         }
-        return [];
+        if (!empty($date)) {
+            $query->whereBetween('datetime_event', [$date[0], $date[1]]);
+        }
+        return $query->get();
     }
 
 }
