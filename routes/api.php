@@ -19,5 +19,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('integrationPassword')->group(function () {
-    Route::post('/marked_call/start', [\App\Http\Controllers\MarkedCallController::class, 'startMarked'])->name('api.marked_call.start');
+    Route::post('/marked_call/start',
+        [\App\Http\Controllers\MarkedCallController::class, 'startMarked']
+    )->name('api.marked_call.start');
 });

@@ -17,8 +17,8 @@ class IntegrationPassword
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->header('service_password') &&
-            $request->header('service_password') == env('MCC_SERVICES_PASS')) {
+        if ($request->header('ServiceToken') &&
+            $request->header('ServiceToken') == env('MCC_SERVICES_PASS')) {
             return $next($request);
         }
         throw new ForbiddenException(403);

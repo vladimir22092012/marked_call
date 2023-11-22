@@ -30,6 +30,7 @@ class Owners {
         $model = new Events();
         $model->set_table($owner);
         $query = $model->newQuery();
+        $query->select(['id', 'title', 'datetime_event']);
         if (!empty($call_id)) {
             $query->where('id', '=', $call_id);
         }

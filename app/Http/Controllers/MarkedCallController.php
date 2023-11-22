@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Marked\StartMarkedRequest;
 use App\Jobs\MarkedCall;
+use App\Jobs\StarterMarkupDataJob;
+use App\Jobs\StartSummaryMarkupJob;
 use App\Models\CallUserGkProject;
 use App\Models\Events;
 use App\Models\LkUsers;
 use App\Models\Owner;
+use App\Models\User;
 use App\Services\Owners;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use function Termwind\render;
@@ -38,6 +43,11 @@ class MarkedCallController extends Controller
     public function startMarked(StartMarkedRequest $request)
     {
         try {
+            if (Auth::user()) {
+                $authUser = Auth::user();
+            } else {
+                $authUser = User::query()->first();
+            }
             $data = $request->validated();
             if ($data['type'] == 'interval' && !$data['date_interval']) {
                 return $this->success(['status' => 'error', 'errors' => [
@@ -52,34 +62,25 @@ class MarkedCallController extends Controller
 
             if ($data['type'] == 'call') {
                 $items = Owners::getCalls($data['owner'], $data['call_id']);
-            } else {
-                $start = Carbon::parse($data['date_interval'][0])->unix();
-                $end = Carbon::parse($data['date_interval'][1])->unix();
-                $items = Owners::getCalls($data['owner'], null, [$start, $end]);
-            }
-
-            foreach ($items as $event) {
-                $user = LkUsers::query()->where('owner', '=', $data['owner'])->first();
-                $gkprojectid = 0;
-                if ($user) {
-                    $projects = CallUserGkProject::query()->where('user_id', '=', $user->id)->get();
-                    foreach ($projects as $project) {
-                        $gkprojectid = $project->project_id;
-                        if ((isset($event->project_id)) && ($project->division_id == $event->project_id)) {
-                            $gkprojectid = $project->project_id;
-                            break;
-                        }
-                    }
+                if (count($items) > 0) {
+                    $data['date_interval'] = [
+                        date('Y-m-d', $items[0]->datetime_event),
+                        date('Y-m-d', $items[0]->datetime_event)
+                    ];
                 }
-                MarkedCall::dispatch(
-                    $event->toArray(),
-                    $gkprojectid,
-                    $data['owner'],
-                    $request->user()
-                )->onQueue('marked_call');
+            } else {
+                $start = Carbon::parse($data['date_interval'][0]);
+                $end = Carbon::parse($data['date_interval'][1]);
+                $data['date_interval'] = [
+                    $start->format('Y-m-d'),
+                    $end->format('Y-m-d')
+                ];
+                $items = Owners::getCalls($data['owner'], null, [$start->unix(), $end->unix()]);
             }
 
-            return $this->success(['status' => 'ok']);
+            StarterMarkupDataJob::dispatch($items->toArray(), $data, $authUser)->onQueue('marked_call');
+
+            return $this->success(['status' => 'ok', 'items' => $items]);
         } catch (\Exception $e) {
             return $this->error(500, 'Внутренняя ошибка сервера', $e);
         }
