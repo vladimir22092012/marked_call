@@ -60,7 +60,7 @@ class MarkedCall implements ShouldQueue
         } catch (\Exception $exception) {
             MarkedCallLog::create([
                 'call_id' => $this->event['id'],
-                'tags' => $exception->getMessage(),
+                'tags' => $exception->getMessage() .PHP_EOL.$exception->getFile().PHP_EOL.$exception->getLine(),
                 'status' => 0,
                 'user_id' => $this->user->id,
             ]);
@@ -299,7 +299,7 @@ class MarkedCall implements ShouldQueue
         $map = [];
         foreach ($array as $key => $item) {
             if (!empty($item)) {
-                $channel = $this->text_channel[$key];
+                $channel = $this->text_channel[$key] ?? "M";
                 $map[$key] = [
                     'id' => $key,
                     'position' => $len,
@@ -537,7 +537,7 @@ class MarkedCall implements ShouldQueue
                                     $message_number = $item['id'];
                                     $position = $item['position'];
 
-                                    if ($allCoordinates[$a]['start'] > $position && $map[$key + 1] ? $allCoordinates[$a]['start'] < $map[$key
+                                    if (isset($allCoordinates[$a]) && $allCoordinates[$a]['start'] > $position && (isset($map[$key + 1]) && $map[$key + 1]) ? $allCoordinates[$a]['start'] < $map[$key
                                         + 1]['position'] : true
                                     ) {
 
@@ -550,7 +550,9 @@ class MarkedCall implements ShouldQueue
 
 
                                         for ($indexNext = $key; $indexNext < $mapLength; $indexNext++) {
-                                            if ($allCoordinates[$b]['start'] > $position && $map[$indexNext + 1] ? $allCoordinates[$b]['start']
+                                            if ($allCoordinates[$b]['start'] > $position &&
+                                            isset($map[$indexNext + 1]) ?
+                                                $allCoordinates[$b]['start']
                                                 < $map[$indexNext + 1]['position'] : true
                                             ) {
 //                                                $markers[$marker]['message_number'][] = $map[$indexNext]['id'];

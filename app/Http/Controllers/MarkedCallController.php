@@ -71,16 +71,19 @@ class MarkedCallController extends Controller
             } else {
                 $start = Carbon::parse($data['date_interval'][0]);
                 $end = Carbon::parse($data['date_interval'][1]);
+                $items = Owners::getCalls($data['owner'], null, [$start->unix(), $end->unix()]);
                 $data['date_interval'] = [
                     $start->format('Y-m-d'),
                     $end->format('Y-m-d')
                 ];
-                $items = Owners::getCalls($data['owner'], null, [$start->unix(), $end->unix()]);
             }
+            if (count($items) > 0) {
+                StarterMarkupDataJob::dispatch($items->toArray(), $data, $authUser)->onQueue('marked_call');
 
-            StarterMarkupDataJob::dispatch($items->toArray(), $data, $authUser)->onQueue('marked_call');
-
-            return $this->success(['status' => 'ok', 'items' => $items]);
+                return $this->success(['status' => 'ok', 'items' => $items]);
+            } else {
+                return $this->success(['status' => 'error', 'custom_message' => 'Нет звонков!']);
+            }
         } catch (\Exception $e) {
             return $this->error(500, 'Внутренняя ошибка сервера', $e);
         }

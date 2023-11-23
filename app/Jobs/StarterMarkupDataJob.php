@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Log;
 
 class StarterMarkupDataJob implements ShouldQueue
 {
@@ -32,17 +33,19 @@ class StarterMarkupDataJob implements ShouldQueue
     {
         foreach ($this->items as $event) {
             $user = LkUsers::query()->where('owner', '=', $this->data['owner'])->first();
+            Log::debug(var_export($user->toArray(), true));
             $eventRecordModel = new EventRecord();
             $eventRecordModel->set_table($this->data['owner']);
             $eventRecord = $eventRecordModel->newQuery()->where('id', '=', $event['id'])->first();
 
 
             $gkprojectid = 0;
-            if ($user && $eventRecord) {
+            if ($user) {
                 $projects = CallUserGkProject::query()->where('user_id', '=', $user->id)->get();
+                Log::debug(var_export($projects->toArray(), true));
                 foreach ($projects as $project) {
                     $gkprojectid = $project->project_id;
-                    if ((isset($eventRecord->project_id)) && ($project->division_id == $eventRecord->project_id)) {
+                    if ($eventRecord && isset($eventRecord->project_id) && ($project->division_id == $eventRecord->project_id)) {
                         $gkprojectid = $project->project_id;
                         break;
                     }

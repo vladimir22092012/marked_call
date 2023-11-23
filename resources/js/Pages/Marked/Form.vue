@@ -30,7 +30,11 @@
                   <VueDatePicker
                       :class="{'is-invalid':form?.errors?.date_interval}"
                       v-model="form.date_interval"
-                      :max-date="new Date()"
+                      locale="ru"
+                      timezone="Africa/Cairo"
+                      cancel-text="Отменить"
+                      select-text="Выбрать"
+                      :format="format"
                       range
                       no-disabled-range
                   ></VueDatePicker>
@@ -74,6 +78,9 @@ export default {
         }
     },
     methods: {
+        format(date) {
+            console.log(date)
+        },
         submit() {
           this.form.errors = {}
           axios.post(route('start'), this.form)
@@ -86,6 +93,14 @@ export default {
                     showConfirmButton: true,
                   });
                 } else {
+                    if (response?.data?.data?.custom_message) {
+                        this.$swal({
+                            position: "top-end",
+                            icon: "error",
+                            title: response?.data?.data?.custom_message,
+                            showConfirmButton: true,
+                        });
+                    }
                   this.form.errors = response?.data?.data?.errors;
                 }
               })
