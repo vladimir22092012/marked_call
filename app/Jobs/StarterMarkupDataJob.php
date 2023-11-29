@@ -18,9 +18,9 @@ class StarterMarkupDataJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private array $items;
-    private array $data;
-    private User $authUser;
+    public array $items;
+    public array $data;
+    public User $authUser;
 
     public function __construct($items, $data, $authUser)
     {
@@ -33,7 +33,6 @@ class StarterMarkupDataJob implements ShouldQueue
     {
         foreach ($this->items as $event) {
             $user = LkUsers::query()->where('owner', '=', $this->data['owner'])->first();
-            Log::debug(var_export($user->toArray(), true));
             $eventRecordModel = new EventRecord();
             $eventRecordModel->set_table($this->data['owner']);
             $eventRecord = $eventRecordModel->newQuery()->where('id', '=', $event['id'])->first();
@@ -42,7 +41,6 @@ class StarterMarkupDataJob implements ShouldQueue
             $gkprojectid = 0;
             if ($user) {
                 $projects = CallUserGkProject::query()->where('user_id', '=', $user->id)->get();
-                Log::debug(var_export($projects->toArray(), true));
                 foreach ($projects as $project) {
                     $gkprojectid = $project->project_id;
                     if ($eventRecord && isset($eventRecord->project_id) && ($project->division_id == $eventRecord->project_id)) {
@@ -53,7 +51,7 @@ class StarterMarkupDataJob implements ShouldQueue
             }
             MarkedCall::dispatch($event, $gkprojectid, $this->data['owner'], $this->authUser)->onQueue('marked_call');
         }
-        StartSummaryMarkupJob::dispatch($this->data)->onQueue('marked_call');
+        StartSummaryMarkupJob::dispatch($this->data, $this->authUser)->onQueue('marked_call');
     }
 
 }

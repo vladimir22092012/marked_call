@@ -31,7 +31,7 @@
                       :class="{'is-invalid':form?.errors?.date_interval}"
                       v-model="form.date_interval"
                       locale="ru"
-                      timezone="Africa/Cairo"
+                      timezone="UTC"
                       cancel-text="Отменить"
                       select-text="Выбрать"
                       :format="format"
@@ -79,7 +79,33 @@ export default {
     },
     methods: {
         format(date) {
-            console.log(date)
+            let format = '';
+            if (date.length) {
+                if (date[0] != undefined) {
+                    var day = date[0].getDate(),
+                        month = date[0].getMonth() + 1,
+                        year = date[0].getFullYear(),
+                        hours = date[0].getHours(),
+                        minutes = date[0].getMinutes();
+                    if (minutes <= 9) {
+                        minutes = `0${minutes}`
+                    }
+
+                    format = `${day}.${month}.${year} ${hours}:${minutes}`
+                }
+                if (date[1] != undefined) {
+                    day = date[1].getDate();
+                    month = date[1].getMonth() + 1;
+                    year = date[1].getFullYear();
+                    hours = date[1].getHours();
+                    minutes = date[1].getMinutes();
+                    if (minutes <= 9) {
+                        minutes = `0${minutes}`
+                    }
+                    format += ` - ${day}.${month}.${year} ${hours}:${minutes}`
+                }
+            }
+            return format;
         },
         submit() {
           this.form.errors = {}
@@ -89,7 +115,7 @@ export default {
                   this.$swal({
                     position: "top-end",
                     icon: "success",
-                    title: "Начали разметку. Можете покинуть страницу, или запустить новую разметку.",
+                    title: "Мы начали разметку и сообщим о её завершении. Можете покинуть страницу, или запустить новую разметку.",
                     showConfirmButton: true,
                   });
                 } else {

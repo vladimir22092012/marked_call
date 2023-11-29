@@ -1,3 +1,25 @@
+<script>
+import { Link, router } from "@inertiajs/vue3";
+import route from "ziggy-js";
+
+export default {
+    methods: {route},
+    components: {
+        Link
+    },
+    data() {
+        return {
+            user: {},
+        }
+    },
+    mounted() {
+        this.user = this.$page?.props?.auth.user;
+        router.on('finish', (event) => {
+            this.user = this.$page?.props?.auth.user;
+        })
+    }
+}
+</script>
 <template>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
@@ -32,25 +54,3 @@
         </div>
     </nav>
 </template>
-<script>
-import { Link, router } from "@inertiajs/vue3";
-import route from "ziggy-js";
-
-export default {
-    methods: {route},
-    components: {
-        Link
-    },
-    data() {
-        return {
-            user: {},
-        }
-    },
-    mounted() {
-        this.user = this.$page?.props?.auth.user;
-        router.on('finish', (event) => {
-            this.user = this.$page?.props?.auth.user;
-        })
-    }
-}
-</script>

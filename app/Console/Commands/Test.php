@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Services\WordsForms;
+use App\Events\LayoutNotifyEvent;
+use App\Models\User;
 use Illuminate\Console\Command;
 
 class Test extends Command
@@ -26,6 +27,7 @@ class Test extends Command
      */
     public function handle()
     {
-
+        sleep(2);
+        LayoutNotifyEvent::dispatch('marked_call.end', User::query()->first()->id, '<p><b>Тестовое сообщение</b></p>');
     }
 }

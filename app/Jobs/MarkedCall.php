@@ -20,20 +20,20 @@ class MarkedCall implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $event;
-    private $owner_id;
+    public $event;
+    public $owner_id;
 
     const LIMIT_INDEX_WORD_IN_PHRASE = 4;
     const DEFAULT_SCHEME_ID = 25;
-    private $links_words = null;
-    private $lemmas = null;
-    private $wordsBasis = null;
-    private $tags_call = null;
-    private $project_id = null;
-    private ?ProjectWordstat $_project;
-    private $_words_basis = null;
-    private $text_call = null;
-    private $_map = null;
+    public $links_words = null;
+    public $lemmas = null;
+    public $wordsBasis = null;
+    public $tags_call = null;
+    public $project_id = null;
+    public ?ProjectWordstat $_project;
+    public $_words_basis = null;
+    public $text_call = null;
+    public $_map = null;
     public $text_channel = [];
 
     public $user;

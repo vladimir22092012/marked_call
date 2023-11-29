@@ -10,6 +10,7 @@
                 csrfToken: "{{ csrf_token() }}"
             }
         </script>
+        <link type="image/x-icon" href="/favicon.ico" rel="shortcut icon">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

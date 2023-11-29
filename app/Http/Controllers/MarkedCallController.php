@@ -63,18 +63,18 @@ class MarkedCallController extends Controller
             if ($data['type'] == 'call') {
                 $items = Owners::getCalls($data['owner'], $data['call_id']);
                 if (count($items) > 0) {
-                    $data['date_interval'] = [
-                        date('Y-m-d', $items[0]->datetime_event),
-                        date('Y-m-d', $items[0]->datetime_event)
+                    $data['summary_date_interval'] = [
+                        date('d.m.Y', $items[0]->datetime_event),
+                        date('d.m.Y', $items[0]->datetime_event)
                     ];
                 }
             } else {
-                $start = Carbon::parse($data['date_interval'][0]);
-                $end = Carbon::parse($data['date_interval'][1]);
-                $items = Owners::getCalls($data['owner'], null, [$start->unix(), $end->unix()]);
-                $data['date_interval'] = [
-                    $start->format('Y-m-d'),
-                    $end->format('Y-m-d')
+                $start = Carbon::parse($data['date_interval'][0])->subHours(3)->format('d.m.Y H:i:s');
+                $end = Carbon::parse($data['date_interval'][1])->subHours(3)->format('d.m.Y H:i:s');
+                $items = Owners::getCalls($data['owner'], null, [strtotime($start), strtotime($end)]);
+                $data['summary_date_interval'] = [
+                    Carbon::parse($data['date_interval'][0])->format('Y-m-d'),
+                    Carbon::parse($data['date_interval'][1])->format('Y-m-d')
                 ];
             }
             if (count($items) > 0) {
