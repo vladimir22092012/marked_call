@@ -27,7 +27,5 @@ class Test extends Command
      */
     public function handle()
     {
-        sleep(2);
-        LayoutNotifyEvent::dispatch('marked_call.end', User::query()->first()->id, '<p><b>Тестовое сообщение</b></p>');
     }
 }

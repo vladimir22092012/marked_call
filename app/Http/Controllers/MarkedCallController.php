@@ -78,7 +78,7 @@ class MarkedCallController extends Controller
                 ];
             }
             if (count($items) > 0) {
-                StarterMarkupDataJob::dispatch($items->toArray(), $data, $authUser)->onQueue('marked_call');
+                StarterMarkupDataJob::dispatchSync($items->toArray(), $data, $authUser);//->onQueue('marked_call');
 
                 return $this->success(['status' => 'ok', 'items' => $items]);
             } else {

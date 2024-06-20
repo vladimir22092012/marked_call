@@ -74,13 +74,11 @@ class MarkedCall implements ShouldQueue
         } else {
             return false;
         }
-
         // Получаем слова базисов
         $this->getWordsBasis();
 
         // Получаем недостающие леммы
         $this->updateLemmasLazy();
-
         // Индексируем текст
         $this->analysisText();
 
@@ -108,15 +106,20 @@ class MarkedCall implements ShouldQueue
                     $messages = $item['message_number'];
                     foreach ($messages as $m_key => $m) {
                         if ($m['position']['start'] === $start_original && $m['position']['end'] === $end_original && $marker_original !== $marker) {
-                            $next_original = $markers[$marker_original]['message_number'][$m_original_key + 1];
-                            $next = $messages[$m_key + 1];
-                            if (!empty($next_original) && !empty($next)) {
-                                if ($next_original['position']['start'] > $next['position']['start']) {
-                                    unset($messages_original[$m_original_key + 1]); #
-                                    if (count($messages_original) <= 1) {
-                                        $conflictTags[] = $markers[$marker_original]['name'];
-                                        $markers[$marker_original]['message_number'] = [];
-                                        $markers[$marker_original]['color'] = '#ccc';
+                            if (isset($markers[$marker_original]) &&
+                                isset($markers[$marker_original]['message_number']) &&
+                                isset($markers[$marker_original]['message_number'][$m_original_key + 1])
+                            ) {
+                                $next_original = $markers[$marker_original]['message_number'][$m_original_key + 1];
+                                $next = $messages[$m_key + 1];
+                                if (!empty($next_original) && !empty($next)) {
+                                    if ($next_original['position']['start'] > $next['position']['start']) {
+                                        unset($messages_original[$m_original_key + 1]); #
+                                        if (count($messages_original) <= 1) {
+                                            $conflictTags[] = $markers[$marker_original]['name'];
+                                            $markers[$marker_original]['message_number'] = [];
+                                            $markers[$marker_original]['color'] = '#ccc';
+                                        }
                                     }
                                 }
                             }
@@ -310,10 +313,10 @@ class MarkedCall implements ShouldQueue
             }
         }
         $this->setMap($map);
-
         $lemmas = $this->getLemmas();
 
         $text = mb_strtolower($text);
+
         $words = [];
         $startWord = false;
 
@@ -390,9 +393,7 @@ class MarkedCall implements ShouldQueue
 
             }
         }
-
         $this->setLinksWords($indexWords);
-
         return $this->getLinksWords();
     }
 
@@ -418,7 +419,6 @@ class MarkedCall implements ShouldQueue
         $lemmas = $this->getLemmas();
         $textCall = $this->getTextCall();
         $map = $this->getMap();
-
         foreach ($wordsBasis as $marker => $words) {
             $marker = explode('_', $marker);
             $color = array_pop($marker);
@@ -429,8 +429,8 @@ class MarkedCall implements ShouldQueue
             $this->addTag($marker);
         }
 
-        foreach ($wordsBasis as $marker => $words) {
 
+        foreach ($wordsBasis as $marker => $words) {
             $marker = explode('_', $marker);
             $color = array_pop($marker);
             $marker = implode('_', $marker);
@@ -449,7 +449,7 @@ class MarkedCall implements ShouldQueue
                 $marker = str_replace("!","",$marker);
             }
             $first_char = mb_substr($marker, 0, 1);
-            $last_char = mb_substr($marker, -1);;
+            $last_char = mb_substr($marker, -1);
             if($first_char === '"' && $last_char === '"') {
                 $onlyOneTag = true;
                 $marker = str_replace('"',"", $marker);
@@ -470,7 +470,6 @@ class MarkedCall implements ShouldQueue
                     $wordsResult[] = $word;
                 }
             }
-
             foreach ($wordsResult as $word) {
                 $word = self::clearIndex($word);
                 if (isset($index[$word])) {
@@ -482,6 +481,7 @@ class MarkedCall implements ShouldQueue
                         ];
                     }
                 }
+
             }
 
 
@@ -499,8 +499,8 @@ class MarkedCall implements ShouldQueue
             }, $allCoordinates);
 
             $allCoordinates = array_values($allCoordinates);
-
             $allCoordinatesLength = count($allCoordinates);
+
             $markers = $this->tags_call;
             $mapLength = count($map);
             if($allCoordinatesLength >= 1 && $onlyOneTag) {
@@ -526,7 +526,16 @@ class MarkedCall implements ShouldQueue
                 for ($a = 0; $a < $allCoordinatesLength; $a++) {
                     for ($b = 1 + $a; $b < $allCoordinatesLength; $b++) {
                         if ($allCoordinates[$a]['end'] < $allCoordinates[$b]['start']) {
-                            if (($allCoordinates[$a]['start'] >= $allCoordinates[$b]['start'] && $allCoordinates[$a]['start'] <= $allCoordinates[$b]['end']) || ($allCoordinates[$a]['end'] >= $allCoordinates[$b]['start'] && $allCoordinates[$a]['end'] <= $allCoordinates[$b]['end'])) {
+                            if (
+                                (
+                                    $allCoordinates[$a]['start'] >= $allCoordinates[$b]['start'] &&
+                                    $allCoordinates[$a]['start'] <= $allCoordinates[$b]['end']
+                                ) ||
+                                (
+                                    $allCoordinates[$a]['end'] >= $allCoordinates[$b]['start'] &&
+                                    $allCoordinates[$a]['end'] <= $allCoordinates[$b]['end']
+                                )
+                            ) {
                                 continue;
                             }
                             $textSlice = mb_substr($textCall, $allCoordinates[$a]['end'], $allCoordinates[$b]['start'] - $allCoordinates[$a]['end']);
@@ -536,7 +545,6 @@ class MarkedCall implements ShouldQueue
                                 foreach ($map as $key => $item) {
                                     $message_number = $item['id'];
                                     $position = $item['position'];
-
                                     if (isset($allCoordinates[$a]) && $allCoordinates[$a]['start'] > $position && (isset($map[$key + 1]) && $map[$key + 1]) ? $allCoordinates[$a]['start'] < $map[$key
                                         + 1]['position'] : true
                                     ) {
@@ -578,6 +586,7 @@ class MarkedCall implements ShouldQueue
                 }
             }
         }
+
 
         /**
          * TODO: Логика нахождения тэгов

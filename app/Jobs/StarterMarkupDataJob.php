@@ -49,7 +49,7 @@ class StarterMarkupDataJob implements ShouldQueue
                     }
                 }
             }
-            MarkedCall::dispatch($event, $gkprojectid, $this->data['owner'], $this->authUser)->onQueue('marked_call');
+            MarkedCall::dispatchSync($event, $gkprojectid, $this->data['owner'], $this->authUser);//->onQueue('marked_call');
         }
         StartSummaryMarkupJob::dispatch($this->data, $this->authUser)->onQueue('marked_call');
     }
