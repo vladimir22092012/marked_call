@@ -182,7 +182,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default', 'marked_call'],
+            'queue' => ['default', 'marked_call','gpt_1','gpt_2','gpt_3','gpt_4','gpt_5'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 3,
@@ -202,6 +202,7 @@ return [
                 'queue' => [
                     'default',
                     'marked_call',
+                    'gpt_1','gpt_2','gpt_3','gpt_4','gpt_5'
                 ],
                 'balance' => 'auto',
                 'minProcesses' => 1,
@@ -218,6 +219,7 @@ return [
                 'queue' => [
                     'default',
                     'marked_call',
+                    'gpt_1','gpt_2','gpt_3','gpt_4','gpt_5'
                 ],
                 'balance' => 'auto',
                 'minProcesses' => 1,

@@ -23,5 +23,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'manager',
             'password' => Hash::make('12345678q')
         ]);
+        \App\Models\User::factory()->create([
+            'name' => 'client',
+            'email' => 'client',
+            'password' => Hash::make('12345678')
+        ]);
     }
 }

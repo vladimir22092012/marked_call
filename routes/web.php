@@ -1,7 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\MarkedCallController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GptController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,16 +20,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [\App\Http\Controllers\AuthController::class, 'auth'])->name('auth');
 });
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/home', [\App\Http\Controllers\MarkedCallController::class, 'form'])->name('marked_call.home');
-    Route::get('/', [\App\Http\Controllers\MarkedCallController::class, 'form'])->name('marked_call.form');
-    Route::post('/start', [\App\Http\Controllers\MarkedCallController::class, 'startMarked'])->name('start');
-    Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
+Route::group(['middleware' => ['auth:sanctum', 'permissions']], function () {
+    Route::get('/home', [MarkedCallController::class, 'form'])->name('marked_call.home');
+    Route::get('/', [MarkedCallController::class, 'form'])->name('marked_call.form');
+    Route::get('/gpt/settings', [GptController::class, 'settings'])->name('gpt.settings');
+    Route::post('/start', [MarkedCallController::class, 'startMarked'])->name('start');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/create', [AdminController::class, 'form'])->name('users.form');
+    Route::post('/save', [AdminController::class, 'save'])->name('users.save');
+    Route::get('/delete/{user}', [AdminController::class, 'delete'])->name('users.delete');
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
-    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
-    Route::get('/create', [\App\Http\Controllers\AdminController::class, 'form'])->name('users.form');
-    Route::post('/save', [\App\Http\Controllers\AdminController::class, 'save'])->name('users.save');
-    Route::get('/delete/{user}', [\App\Http\Controllers\AdminController::class, 'delete'])->name('users.delete');
-});

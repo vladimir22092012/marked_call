@@ -3,25 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Marked\StartMarkedRequest;
-use App\Jobs\MarkedCall;
 use App\Jobs\StarterMarkupDataJob;
-use App\Jobs\StartSummaryMarkupJob;
-use App\Models\CallUserGkProject;
-use App\Models\Events;
-use App\Models\LkUsers;
-use App\Models\Owner;
 use App\Models\User;
 use App\Services\Owners;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use function Termwind\render;
 
 class MarkedCallController extends Controller
 {
+
     /**
      * Показываем форму для выбора параметров разметки
      * @param Request $request
@@ -88,4 +80,5 @@ class MarkedCallController extends Controller
             return $this->error(500, 'Внутренняя ошибка сервера', $e);
         }
     }
+
 }
